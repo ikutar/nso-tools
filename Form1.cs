@@ -1,105 +1,69 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Windows.Forms;
 
 namespace NSO_TOOL
 {
-    public partial class Form1 : Form
+    public class Form1 : Form
     {
-        List<Process> processes = new List<Process>();
-        List<string> accounts = new List<string>();
+        ListBox list;
+        TextBox txt;
+        Button btnAdd, btnStart, btnStop;
 
-        string javaPath = "";
-        string jarPath = "";
+        List<string> accs = new List<string>();
+        List<Process> ps = new List<Process>();
 
         public Form1()
         {
-            InitializeComponent();
-        }
+            this.Text = "NSO TOOL";
+            this.Width = 400;
+            this.Height = 400;
 
-        private void btnSelectJava_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Java (*.exe)|*.exe";
-            if (ofd.ShowDialog() == DialogResult.OK)
+            txt = new TextBox() { Top = 10, Left = 10, Width = 200 };
+            btnAdd = new Button() { Text = "Add", Top = 10, Left = 220 };
+
+            list = new ListBox() { Top = 50, Left = 10, Width = 360, Height = 200 };
+
+            btnStart = new Button() { Text = "Start", Top = 270, Left = 10 };
+            btnStop = new Button() { Text = "Stop", Top = 270, Left = 100 };
+
+            this.Controls.Add(txt);
+            this.Controls.Add(btnAdd);
+            this.Controls.Add(list);
+            this.Controls.Add(btnStart);
+            this.Controls.Add(btnStop);
+
+            btnAdd.Click += (s, e) =>
             {
-                javaPath = ofd.FileName;
-                txtJava.Text = javaPath;
-            }
-        }
+                accs.Add(txt.Text);
+                list.Items.Add(txt.Text);
+                txt.Clear();
+            };
 
-        private void btnSelectJar_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Jar (*.jar)|*.jar";
-            if (ofd.ShowDialog() == DialogResult.OK)
+            btnStart.Click += (s, e) =>
             {
-                jarPath = ofd.FileName;
-                txtJar.Text = jarPath;
-            }
-        }
+                int max = Math.Min(accs.Count, 15);
 
-        private void btnAddAcc_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtAcc.Text))
-            {
-                accounts.Add(txtAcc.Text);
-                listAcc.Items.Add(txtAcc.Text);
-                txtAcc.Clear();
-            }
-        }
-
-        private void btnRemoveAcc_Click(object sender, EventArgs e)
-        {
-            if (listAcc.SelectedIndex >= 0)
-            {
-                accounts.RemoveAt(listAcc.SelectedIndex);
-                listAcc.Items.RemoveAt(listAcc.SelectedIndex);
-            }
-        }
-
-        private void btnStart_Click(object sender, EventArgs e)
-        {
-            if (javaPath == "" || jarPath == "")
-            {
-                MessageBox.Show("Chọn Java và file .jar trước!");
-                return;
-            }
-
-            int max = Math.Min(accounts.Count, 15);
-
-            for (int i = 0; i < max; i++)
-            {
-                Process p = new Process();
-                p.StartInfo.FileName = javaPath;
-
-                // truyền tài khoản vào nếu game hỗ trợ
-                p.StartInfo.Arguments = $"-jar \"{jarPath}\" {accounts[i]}";
-
-                p.StartInfo.CreateNoWindow = false;
-                p.StartInfo.UseShellExecute = true;
-
-                p.Start();
-
-                processes.Add(p);
-            }
-        }
-
-        private void btnStop_Click(object sender, EventArgs e)
-        {
-            foreach (var p in processes)
-            {
-                try
+                for (int i = 0; i < max; i++)
                 {
-                    if (!p.HasExited)
-                        p.Kill();
-                }
-                catch { }
-            }
+                    Process p = new Process();
+                    p.StartInfo.FileName = "java";
+                    p.StartInfo.Arguments = "-jar game.jar";
+                    p.Start();
 
-            processes.Clear();
+                    ps.Add(p);
+                }
+            };
+
+            btnStop.Click += (s, e) =>
+            {
+                foreach (var p in ps)
+                {
+                    try { if (!p.HasExited) p.Kill(); } catch { }
+                }
+                ps.Clear();
+            };
         }
     }
 }
